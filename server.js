@@ -29,9 +29,9 @@ const addRequestId = require('express-request-id')()
 // Set up authentication middleware
 const basicAuth = require('express-basic-auth')
 const authenticate = basicAuth({
-  'users': { 'username': 'password' },
+  'users': { 'streamlit-superuser': 'streamlit is so much fun' },
   'challenge': true,
-  'realm': 'Ambassador Realm'
+  'realm': 'Mine'
 })
 
 // Always have a request ID.
@@ -41,7 +41,7 @@ app.use(addRequestId)
 app.use(logRequests)
 
 // Get authentication path from env, default to /extauth/backend/get-quote
-var authPath = '/extauth/backend/get-quote'
+var authPath = '/extauth/backend'
 if ('AUTH_PATH' in process.env) {
   authPath = process.env.AUTH_PATH
 }
@@ -49,15 +49,16 @@ console.log(`setting authenticated path to: ${authPath}`)
 
 // Require authentication for authPath requests
 app.all(authPath.concat('*'), authenticate, function (req, res) {
-  var session = req.headers['x-qotm-session']
+  var session = req.headers['x-streamlit-session']
 
   if (!session) {
-    console.log(`creating x-qotm-session: ${req.id}`)
+    console.log(`creating x-streamlit-session: ${req.id}`)
     session = req.id
-    res.set('x-qotm-session', session)
+    res.set('x-streamlit-session', session)
   }
 
-  console.log(`allowing QotM request, session ${session}`)
+
+  console.log(`allowing request, session ${session}`)
   res.send('OK (authenticated)')
 })
 
@@ -67,7 +68,7 @@ app.all('*', function (req, res) {
   res.send(`OK (not ${authPath})`)
 })
 
-app.listen(3000, function () {
+app.listen(9000, function () {
   console.log('Subrequest auth server sample listening on port 3000')
 })
 
